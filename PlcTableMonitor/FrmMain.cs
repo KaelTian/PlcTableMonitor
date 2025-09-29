@@ -320,6 +320,16 @@ namespace PlcTableMonitor
             {
                 return (null, DateTime.Now - queryStartTime, tableName); // 返回空结果，但记录耗时
             }
+            catch (Exception ex)
+            {
+                // 记录查询异常日志
+                await ExceptionLogger.LogExceptionIfNeededAsync(
+                    tableName: tableName,
+                    exceptionType: "QueryError",
+                    detail: "查询表信息失败",
+                    additionalInfo: ex.Message);
+                return (null, DateTime.Now - queryStartTime, tableName); // 返回空结果，但记录耗时
+            }
         }
         /// <summary>
         /// 更新DataGridView的数据源
@@ -336,7 +346,8 @@ namespace PlcTableMonitor
                 if (row == null) continue;
 
                 string table = row["表名"].ToString()!;
-                long rowCount = Convert.ToInt64(row["行数"]);
+                Int64.TryParse(row["行数"].ToString(), out long rowCount);
+                //long rowCount = Convert.ToInt64(row["行数"]);
                 long diffCount = rowCount - (_cacheCountDic.ContainsKey(table) ? _cacheCountDic[table] : 0);
                 _cacheCountDic[table] = rowCount; // 更新缓存行数
                 DateTime? lastTime = row["最新创建时间"] as DateTime?;
@@ -795,13 +806,13 @@ namespace PlcTableMonitor
             }
 
             // 设置列宽比例（百分比）
-            dataGridViewExceptionRecords.Columns["Id"].FillWeight = 5;    
-            dataGridViewExceptionRecords.Columns["TableName"].FillWeight = 15;     
-            dataGridViewExceptionRecords.Columns["ExceptionType"].FillWeight = 10; 
-            dataGridViewExceptionRecords.Columns["ExceptionDetail"].FillWeight = 20;    
-            dataGridViewExceptionRecords.Columns["RecordTime"].FillWeight = 15;         
-            dataGridViewExceptionRecords.Columns["AdditionalInfo"].FillWeight = 20;         
-            dataGridViewExceptionRecords.Columns["IsRecovered"].FillWeight = 10;        
+            dataGridViewExceptionRecords.Columns["Id"].FillWeight = 5;
+            dataGridViewExceptionRecords.Columns["TableName"].FillWeight = 15;
+            dataGridViewExceptionRecords.Columns["ExceptionType"].FillWeight = 10;
+            dataGridViewExceptionRecords.Columns["ExceptionDetail"].FillWeight = 20;
+            dataGridViewExceptionRecords.Columns["RecordTime"].FillWeight = 15;
+            dataGridViewExceptionRecords.Columns["AdditionalInfo"].FillWeight = 20;
+            dataGridViewExceptionRecords.Columns["IsRecovered"].FillWeight = 10;
             dataGridViewExceptionRecords.Columns["PreviousRecordId"].FillWeight = 5;
 
             // 允许单元格自动换行
